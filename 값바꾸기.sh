@@ -5,30 +5,34 @@
 #   bash 값바꾸기.sh raw/계획서.hwpx "2025년=>2026년" "5,000만 원=>6,000만 원"
 #   bash 값바꾸기.sh -p 1 raw/계획서.hwpx "2025년=>2026년"              # 1쪽만 (2-4, 1,3 도 가능)
 #   bash 값바꾸기.sh -s "2. 사업 개요" raw/계획서.hwpx "2025년=>2026년"   # 제목 범위만
+#   bash 값바꾸기.sh -o 연습 raw/계획서.hwpx "2025년=>2026년"           # 결과를 out/ 대신 연습/에 (연습용)
 #
-# 결과: out/계획서_날짜[_범위].<확장자>, out/계획서_날짜[_범위]_변경목록.md
-# 점검이 실패하면 결과 파일은 out/에 두지 않고, 이유만 out/…_점검실패.md 에 남긴다.
+# 결과: out/계획서_날짜[_범위].<확장자>, out/계획서_날짜[_범위]_변경목록.md  (-o 를 주면 out/ 대신 그 폴더)
+# 점검이 실패하면 결과 파일은 두지 않고, 이유만 같은 폴더의 …_점검실패.md 에 남긴다.
+# 같은 이름이 이미 있으면 덮어쓰지 않고 _v2, _v3 을 붙인다. 연습/ 은 .gitignore 에 있어 커밋되지 않는다.
 # 종료 코드: 0 성공, 1 실패(점검 실패 포함), 2 사용법 오류
 
 cd "$(dirname "$0")" || exit 2
 S=".claude/skills/계획서-값바꾸기"
 
 usage() {
-  sed -n '4,7p' "$0" | sed 's/^# \{0,3\}//' >&2
+  sed -n '4,8p' "$0" | sed 's/^# \{0,3\}//' >&2
   exit 2
 }
 
-pages=""; section=""
+pages=""; section=""; outdir="out"
 while [ $# -gt 0 ]; do
   case "$1" in
     -p) pages="$2"; shift 2 ;;
     -s) section="$2"; shift 2 ;;
+    -o) outdir="${2%/}"; shift 2 ;;
     -h|--help) usage ;;
     *) break ;;
   esac
 done
 [ $# -lt 2 ] && usage
 [ -n "$pages" ] && [ -n "$section" ] && { echo "-p 와 -s 는 같이 쓸 수 없어요." >&2; exit 2; }
+case "$outdir" in ""|-*|raw|raw/*) echo "-o 뒤에는 결과를 둘 폴더 이름을 적어 주세요 (raw/ 는 안 돼요): $outdir" >&2; exit 2 ;; esac
 src="$1"; shift
 [ -f "$src" ] || { echo "파일이 없어요: $src" >&2; exit 2; }
 ext="${src##*.}"
@@ -70,7 +74,7 @@ bash "$S/check.sh" -l "$W/patch.log" "${opt[@]}" "$W/원본.$ext" "$W/결과.$ex
 ok=$?
 
 echo "5/5 저장하는 중…"
-mkdir -p out
+mkdir -p "$outdir"
 d="$(date +%F)"
 tag=""
 [ -n "$pages" ] && tag="_${pages}쪽"
@@ -78,7 +82,7 @@ if [ -n "$section" ]; then
   t="$(printf '%s' "$section" | sed -E 's/[0-9]+\.//g; s/[[:space:]]+//g; s/^~/처음~/; s/~$/~끝/; s/~/-/g; s#[\\/:*?"<>|]##g')"
   tag="_${t}"
 fi
-base="out/계획서_${d}${tag}"; n=""
+base="${outdir}/계획서_${d}${tag}"; n=""
 while [ -e "${base}${n}.$ext" ] || [ -e "${base}${n}_변경목록.md" ] || [ -e "${base}${n}_점검실패.md" ]; do
   n="_v$(( ${n#_v} + 1 ))"; [ "$n" = "_v1" ] && n="_v2"
 done
