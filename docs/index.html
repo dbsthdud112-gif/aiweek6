@@ -158,13 +158,15 @@ bash 값바꾸기.sh -s "2. 사업 개요" raw/계획서.hwpx "2025년=&gt;2026�
         <tr><td class="nowrap"><code>-s "2. 사업 개요"</code></td><td>그 제목부터 같은 단계의 다음 제목 전까지</td></tr>
         <tr><td class="nowrap"><code>-s "~2. 사업 개요"</code></td><td>처음부터 그 제목 전까지</td></tr>
         <tr><td class="nowrap"><code>-s "3. 추진 배경~5. 추진 일정"</code></td><td>3장부터 5장 전까지</td></tr>
+        <tr><td class="nowrap"><code>-o 연습</code></td><td>결과를 <code>out/</code> 대신 <code>연습/</code> 폴더에 둠 (다른 옵션과 같이 쓸 수 있음)</td></tr>
       </tbody>
     </table>
   </div>
   <ul>
     <li><code>-p</code>와 <code>-s</code>는 같이 쓸 수 없다.</li>
-    <li>결과: <code>out/계획서_날짜[_범위].&lt;확장자&gt;</code>, <code>out/계획서_날짜[_범위]_변경목록.md</code>. 같은 이름이 있으면 <code>_v2</code>, <code>_v3</code>를 붙인다.</li>
+    <li>결과: <code>out/계획서_날짜[_범위].&lt;확장자&gt;</code>, <code>out/계획서_날짜[_범위]_변경목록.md</code>. 같은 이름이 있으면 덮어쓰지 않고 <code>_v2</code>, <code>_v3</code>를 붙인다. 그래서 같은 날 같은 요청을 다시 돌리면 <code>_v2</code>가 생긴다.</li>
     <li>자동 점검에 실패하면 결과 파일은 저장하지 않고 <code>out/…_점검실패.md</code>에 이유만 남긴다.</li>
+    <li><strong>연습할 때는 <code>-o 연습</code>을 붙인다.</strong> <code>연습/</code>은 <code>.gitignore</code>에 있어 커밋되지 않고, <code>out/</code>의 시험 결과와 섞이지 않는다. 연습이 끝나면 <code>연습/</code> 폴더째 지우면 된다. (이슈 #1)</li>
     <li>종료 코드: 0 성공, 1 실패(점검 실패 포함), 2 사용법 오류</li>
   </ul>
 
