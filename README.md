@@ -8,6 +8,12 @@ https://github.com/user-attachments/assets/72b29395-abc2-42ee-907d-71880233a46b
 
 
 
+https://github.com/user-attachments/assets/21737226-7436-4281-beff-14cf8cd220e2
+
+
+
+
+
 ## 시작하기
 
 1. bash(Windows는 Git Bash)와 Node.js(`npx`)를 준비한다. 한글 문서 처리 도구 kordoc은 처음 실행할 때 `npx -y kordoc@^4`로 한 번 내려받는다.
