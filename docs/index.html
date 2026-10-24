@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>계획서 값 바꾸기</title>
+<meta name="description" content="표 중심 한글 사업계획서(.hwp/.hwpx)의 값을 표·서식은 그대로 둔 채 한 번에 바꾸고 바뀐 곳을 점검하는 도구">
+<style>
+  :root {
+    --bg: #fbfaf7;
+    --surface: #ffffff;
+    --text: #1d1d1b;
+    --muted: #5f5e58;
+    --line: #e4e1d8;
+    --accent: #2f5d50;
+    --accent-soft: #e6efe9;
+    --warn: #8a4b12;
+    --warn-soft: #fbefe2;
+    --code-bg: #f2f0ea;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161715;
+      --surface: #1e201d;
+      --text: #ecebe6;
+      --muted: #a9a79f;
+      --line: #34362f;
+      --accent: #8cc2ad;
+      --accent-soft: #23302a;
+      --warn: #f0b47a;
+      --warn-soft: #33291f;
+      --code-bg: #262824;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161715;
+    --surface: #1e201d;
+    --text: #ecebe6;
+    --muted: #a9a79f;
+    --line: #34362f;
+    --accent: #8cc2ad;
+    --accent-soft: #23302a;
+    --warn: #f0b47a;
+    --warn-soft: #33291f;
+    --code-bg: #262824;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+    line-height: 1.7;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+  main { max-width: 860px; margin: 0 auto; padding: 48px 16px 80px; }
+  header { border-bottom: 1px solid var(--line); padding-bottom: 28px; margin-bottom: 8px; }
+  h1 { font-size: 2rem; line-height: 1.3; margin: 0 0 12px; letter-spacing: -0.01em; }
+  .lead { font-size: 1.08rem; color: var(--muted); margin: 0; }
+  .note {
+    margin: 20px 0 0; padding: 12px 16px; border-radius: 8px;
+    background: var(--accent-soft); font-size: 0.95rem;
+  }
+  nav { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 20px 0 0; font-size: 0.92rem; }
+  nav a { color: var(--accent); text-decoration: none; }
+  nav a:hover { text-decoration: underline; }
+  section { padding-top: 36px; }
+  h2 { font-size: 1.35rem; margin: 0 0 14px; }
+  h3 { font-size: 1.05rem; margin: 28px 0 10px; }
+  p, ul { margin: 0 0 12px; }
+  ul { padding-left: 1.2em; }
+  li { margin-bottom: 4px; }
+  code {
+    font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+    font-size: 0.88em; background: var(--code-bg); padding: 1px 5px; border-radius: 4px;
+  }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
+    padding: 14px 16px; overflow-x: auto; margin: 0 0 14px; line-height: 1.55;
+  }
+  pre code { background: none; padding: 0; font-size: 0.86rem; }
+  .table-wrap { overflow-x: auto; margin: 0 0 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+  th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+  th { font-weight: 600; color: var(--muted); white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  td.nowrap { white-space: nowrap; }
+  .fail { color: var(--warn); font-weight: 600; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 0 0 14px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+  .card h3 { margin: 0 0 6px; }
+  .card p { margin: 0; font-size: 0.94rem; color: var(--muted); }
+  .limits li { margin-bottom: 8px; }
+  .limits strong { color: var(--warn); }
+  .todo { background: var(--warn-soft); color: var(--warn); padding: 0 4px; border-radius: 3px; font-size: 0.9em; }
+  footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.88rem; }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1>계획서 값 바꾸기</h1>
+  <p class="lead">표 중심 한글 사업계획서(.hwp/.hwpx)에서 "이전 값 → 새 값"(연도, 날짜, 사업명, 금액 등)을 표·글꼴·이미지는 그대로 둔 채 한 번에 바꾸고, 바뀐 곳 목록과 자동 점검 결과를 <code>out/</code>에 만든다.</p>
+  <p class="note">이 저장소에는 실제 계획서가 없다. 시험 결과(<code>out/</code>)는 모두 지어낸 가짜 계획서로 만든 것이고, 시험용 원본을 둔 <code>raw/</code> 폴더는 공개하지 않는다.</p>
+  <nav>
+    <a href="#purpose">목적</a>
+    <a href="#setup">준비</a>
+    <a href="#usage">사용법</a>
+    <a href="#results">확인한 결과</a>
+    <a href="#limits">한계</a>
+  </nav>
+</header>
+
+<section id="purpose">
+  <h2>목적</h2>
+  <p>사업계획서를 쓸 때마다 예전 계획서 내용을 옮겨 붙이고 문장·숫자·날짜를 하나씩 고치느라 내용 작성에만 반나절(3~5시간)이 걸린다. 그중 숫자·날짜 고치기가 1시간 이내다. 이 도구는 <strong>숫자·날짜 고치기를 10분 이하</strong>로 줄이는 것을 목표로 한다.</p>
+  <div class="cards">
+    <div class="card">
+      <h3>하는 일</h3>
+      <p>이전 값을 한 번에 새 값으로 바꾼 새 한글 파일과 바뀐 곳 목록을 만든다. 문서 전체, 정한 쪽만, 정한 제목 범위만 바꿀 수 있다.</p>
+    </div>
+    <div class="card">
+      <h3>하지 않는 일</h3>
+      <p>워드(.docx)·암호 걸린 파일, 숫자·날짜 찾아 표시하기, 문장 고치기, 서식 맞추기, 공고문 대조, 제출 양식 점검.</p>
+    </div>
+    <div class="card">
+      <h3>지키는 것</h3>
+      <p>원본은 읽기만 하고, 결과는 항상 <code>out/</code>에 새 파일로 만든다.</p>
+    </div>
+  </div>
+</section>
+
+<section id="setup">
+  <h2>준비</h2>
+  <ul>
+    <li>bash (Windows는 Git Bash), Node.js와 <code>npx</code></li>
+    <li>한글 문서 처리는 kordoc을 <code>npx -y kordoc@^4</code>로 쓴다. 처음 한 번 패키지를 내려받는다.</li>
+    <li>시험한 환경: Node v24.21.0, kordoc 4.18.13</li>
+    <li>프로젝트 폴더에 <code>raw/</code>를 만들고 바꿀 계획서를 넣는다.</li>
+  </ul>
+</section>
+
+<section id="usage">
+  <h2>사용법</h2>
+
+  <h3>1. 터미널에서 직접 돌리기 — 문서 내용이 Claude에게 가지 않음</h3>
+<pre><code>bash 값바꾸기.sh raw/계획서.hwpx "2025년=&gt;2026년" "5,000만 원=&gt;6,000만 원"
+bash 값바꾸기.sh -p 1 raw/계획서.hwpx "2025년=&gt;2026년"
+bash 값바꾸기.sh -s "2. 사업 개요" raw/계획서.hwpx "2025년=&gt;2026년"</code></pre>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>옵션</th><th>뜻</th></tr></thead>
+      <tbody>
+        <tr><td class="nowrap">(없음)</td><td>문서 전체</td></tr>
+        <tr><td class="nowrap"><code>-p 1</code>, <code>-p 2-4</code>, <code>-p 1,3</code></td><td>정한 쪽에서만 바꿈</td></tr>
+        <tr><td class="nowrap"><code>-s "2. 사업 개요"</code></td><td>그 제목부터 같은 단계의 다음 제목 전까지</td></tr>
+        <tr><td class="nowrap"><code>-s "~2. 사업 개요"</code></td><td>처음부터 그 제목 전까지</td></tr>
+        <tr><td class="nowrap"><code>-s "3. 추진 배경~5. 추진 일정"</code></td><td>3장부터 5장 전까지</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <ul>
+    <li><code>-p</code>와 <code>-s</code>는 같이 쓸 수 없다.</li>
+    <li>결과: <code>out/계획서_날짜[_범위].&lt;확장자&gt;</code>, <code>out/계획서_날짜[_범위]_변경목록.md</code>. 같은 이름이 있으면 <code>_v2</code>, <code>_v3</code>를 붙인다.</li>
+    <li>자동 점검에 실패하면 결과 파일은 저장하지 않고 <code>out/…_점검실패.md</code>에 이유만 남긴다.</li>
+    <li>종료 코드: 0 성공, 1 실패(점검 실패 포함), 2 사용법 오류</li>
+  </ul>
+
+  <h3>2. Claude Code에게 맡기기</h3>
+  <p>이 폴더에서 Claude Code를 열고 "1쪽만 2025년을 2026년으로 바꿔 줘"처럼 요청하면 스킬 <code>.claude/skills/계획서-값바꾸기/SKILL.md</code>를 따른다.</p>
+  <ul>
+    <li><strong>조용한 모드(기본)</strong>: Claude는 <code>값바꾸기.sh</code>를 돌리고 그 출력(진행 단계, 통과·실패, 바뀐 줄 수, 결과 경로)만 읽는다. 변경목록은 열지 않는다.</li>
+    <li><strong>자세히 모드</strong>: 사용자가 "자세히 보여 줘"라고 할 때만 바뀐 줄을 읽는다.</li>
+    <li>kordoc은 파일을 외부로 보내지 않지만, <strong>Claude가 읽은 내용(바꿀 값, 건수, 필요하면 바뀐 줄·제목 목록)은 대화로 Claude에 전달된다.</strong> 내용을 전혀 보내고 싶지 않으면 1번처럼 터미널에서 직접 돌린다.</li>
+  </ul>
+
+  <h3>3. 결과 확인 (사람이 할 일)</h3>
+  <ul>
+    <li><code>out/…_변경목록.md</code>의 바뀐 줄을 하나씩 보고, 잘못 바뀐 곳(예: 전화번호 속 2025)이 없는지 체크칸에 표시한다.</li>
+    <li>결과 파일을 한글 프로그램에서 열어 표·글꼴·정렬을 눈으로 확인한다. 자동 점검으로는 화면 모양까지 보지 못한다.</li>
+  </ul>
+
+  <h3>참고: 첫 버전 화면 (.txt/.md용)</h3>
+  <p><code>out/계획서_값바꾸기.html</code>은 한글 파일 방식으로 바꾸기 전에 만든 브라우저 화면이다. .txt/.md 파일만 받으며, 기록용으로 남겨 두었다.</p>
+</section>
+
+<section id="results">
+  <h2>확인한 결과</h2>
+  <p>모두 지어낸 가짜 계획서로 시험했다. 전화번호 속 <code>2025</code>, <code>2,025만 원</code>, <code>2024년</code> 같은 함정 값을 넣어 두고, 이 값들이 바뀌지 않는지 함께 봤다.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>날짜</th><th>시험</th><th>결과</th><th>기록</th></tr></thead>
+      <tbody>
+        <tr><td class="nowrap">10-06</td><td>첫 버전 화면(.md), 값 3개</td><td>남은 이전 값 0, 건수 11=11·3=3·2=2, 바뀐 줄 16줄 모두 확인</td><td><code>out/검증결과_2026-10-06.md</code></td></tr>
+        <tr><td class="nowrap">10-06</td><td>한글 파일 문서 전체, 값 3개</td><td>남은 이전 값 0, 건수 6=6·8=8·2=2, 표 줄 33→33, 바꾼 곳 말고 달라진 줄 0, 건너뛴 곳 0, 구조 검사 통과, 명령 실행 20초</td><td><code>out/검증결과_2026-10-06_한글.md</code></td></tr>
+        <tr><td class="nowrap">10-06</td><td>1쪽만 (5쪽 문서)</td><td>1쪽 2025년 9→0, 2~5쪽 그대로, 쪽 수 5→5, 바뀐 줄 8줄</td><td><code>out/검증결과_2026-10-06_쪽지정.md</code></td></tr>
+        <tr><td class="nowrap">10-06</td><td><code>2. 사업 개요</code>만</td><td>범위 안 3=3·1=1, 범위 밖에서 달라진 줄 0</td><td><code>out/검증결과_2026-10-06_제목범위.md</code></td></tr>
+        <tr><td class="nowrap">10-06</td><td><code>값바꾸기.sh</code> (세 모드)</td><td>문서 전체 11줄·1쪽 8줄·사업 개요 3줄 모두 통과, 결과가 스킬로 만든 결과와 같음</td><td><code>02_기획안.md</code> › 검증</td></tr>
+        <tr><td class="nowrap">10-06</td><td>사용자의 실제 계획서(.hwp) 1개, 연도 두 종류</td><td>남은 이전 값 0, 건수 5=5·4=4, 표 줄 18→18, 병합 표 8→8, 이미지 11개 유지 (파일은 공개하지 않음)</td><td><code>02_기획안.md</code> › 검증</td></tr>
+        <tr><td class="nowrap">10-10</td><td>처음 보는 양식(제목 상자·장 제목 띠)</td><td><span class="fail">실패</span>: 11곳 중 1곳만 바뀜, 표 4개 건너뜀. 점검이 실패로 걸러 결과를 저장하지 않음</td><td><code>out/검증결과_2026-10-10.md</code>, <code>out/계획서_2026-10-10_점검실패.md</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>자동 점검이 일부러 넣은 잘못을 잡는지도 확인했다. 바꾸지 않은 파일, "0개 변경" 로그, 확장자와 실제 형식이 다른 결과, 정한 쪽·범위 밖을 바꾼 결과, 없는 제목, 여러 제목에 맞는 말은 모두 실패하거나 멈췄다.</p>
+</section>
+
+<section id="limits">
+  <h2>한계와 확인하지 못한 것</h2>
+  <ul class="limits">
+    <li><strong>장식이 있는 양식</strong>: 제목 상자나 장 제목 띠(표)가 있는 양식에서는 표 안의 값을 반영하지 못했다(2026-10-10). 점검이 실패로 거르지만, 이런 양식은 지금 바꿀 수 없다. 실제 계획서가 이런 양식인지는 <span class="todo">확인필요</span>.</li>
+    <li><strong>10분 목표</strong>: 명령 실행 시간(19~30초)만 쟀다. 사람이 값을 정하고 결과를 확인하는 시간까지 합친 시간은 아직 재지 않았다.</li>
+    <li><strong>잘못 바뀐 곳 0건</strong>: 한글 파일 시험에서는 Claude가 바뀐 줄을 읽어 확인했고, 사용자 확인은 <span class="todo">확인필요</span>.</li>
+    <li><strong>한글 프로그램에서 열어 보기</strong>: 하지 않았다.</li>
+    <li><strong>쪽 나눔</strong>: 여기서 "쪽"은 kordoc이 그린 쪽이다. 한글 화면의 쪽과 다를 수 있다. 쪽 경계에 걸친 문단에 이전 값이 있으면 바꾸지 않고 멈춘다.</li>
+    <li><strong>제목 범위</strong>: 장 제목이 장식 상자·표 안에 있거나 굵은 글씨로만 쓰였으면 제목으로 잡히지 않을 수 있다. 실제 계획서에서는 <span class="todo">확인필요</span>.</li>
+    <li><strong>.hwp 결과</strong>: .hwp를 넣으면 결과도 실제로는 .hwp 형식이라 같은 확장자로 저장한다. .hwpx만 구조 검사(<code>validate</code>)를 한다.</li>
+    <li><strong>시험 범위</strong>: 실제 계획서는 1개, 연도 두 종류로만 시험했다. 다른 운영체제에서는 시험하지 않았다.</li>
+    <li><strong>기록의 해시</strong>: 2026-10-17에 시험 자료의 전화번호를 실제로 없을 번호(국번이 0으로 시작)로 바꾸면서 <code>out/</code>의 일부 결과 파일 안 번호를 도구 없이 직접 고쳤다. 그래서 검증결과에 적힌 해시는 고치기 전 기준이다.</li>
+  </ul>
+</section>
+
+<footer>
+  자세한 기획과 시험 기록은 저장소의 <code>01_페인포인트.md</code>, <code>02_기획안.md</code>, <code>out/검증결과_*.md</code>에 있다.
+</footer>
+
+</main>
+</body>
+</html>

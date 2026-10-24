@@ -1,0 +1,33 @@
+# 비밀값 파일 (API 키·비밀번호 등)
+# .env 파일 제외
+.env
+# .env.local, .env.production 같은 변형도 제외
+.env.*
+# 단, 값을 비워 둔 예시 파일은 저장소에 포함
+!.env.example
+
+# 개인정보가 든 원자료
+# raw 폴더 전체 제외 (원본 계획서·샘플 자료)
+raw/
+
+# 운영체제가 자동으로 만드는 파일
+# macOS 폴더 정보 파일 제외
+.DS_Store
+# Windows 썸네일 캐시 파일 제외
+Thumbs.db
+
+# 한글·오피스 임시 파일
+# 오피스(Word·Excel·PowerPoint) 편집 중 잠금 파일 제외
+~$*
+# 한글 등 프로그램의 임시 파일 제외
+*.tmp
+# 한글 자동 백업 파일 제외
+*.asv
+# 백업 파일 제외
+*.bak
+
+# PDF 파일 (모든 위치)
+*.pdf
+
+# Claude Code 개인 설정 (내 컴퓨터 전용 권한 설정)
+.claude/settings.local.json
